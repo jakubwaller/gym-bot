@@ -8,6 +8,7 @@ import mplcyberpunk
 import pandas as pd
 import requests
 from pandas import DataFrame
+from telegram.ext import CallbackContext
 
 plt.style.use("cyberpunk")
 
@@ -100,7 +101,7 @@ def run_request(
     return json.loads(response.content.decode("UTF-8"))
 
 
-def plot_exercises(all_exercises: DataFrame, hashed_id: str):
+async def plot_exercises(all_exercises: DataFrame, hashed_id: str, chat_id: int, context: CallbackContext):
     for c in all_exercises["exercise"].unique():
         resampled = all_exercises.drop("group", axis=1)
         resampled = resampled[resampled.exercise == c].drop("exercise", axis=1)
@@ -127,6 +128,8 @@ def plot_exercises(all_exercises: DataFrame, hashed_id: str):
 
         mplcyberpunk.add_glow_effects()
         plt.savefig(f"{hashed_id}_{c}.png")
+
+        await context.bot.send_photo(chat_id, f"{hashed_id}_{c}.png")
 
         plt.cla()
         plt.clf()

@@ -63,10 +63,7 @@ async def report(update: Update, context: CallbackContext) -> int:
 
     df = read_csv(outdir, hashed_id, df_columns)
 
-    exercises_list = plot_exercises(df, hashed_id)
-
-    for e in exercises_list:
-        await context.bot.send_photo(chat_id, f"{hashed_id}_{e}.png")
+    exercises_list = await plot_exercises(df, hashed_id, chat_id, context)
 
     if len(exercises_list) == 0:
         await context.bot.send_message(
