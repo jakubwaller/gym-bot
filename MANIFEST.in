@@ -1,0 +1,2 @@
+include versioneer.py
+include gymbot/_version.py

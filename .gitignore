@@ -1,0 +1,6 @@
+venv_gymbot
+env.json
+.idea
+*.csv
+*.png
+.ipynb_checkpoints

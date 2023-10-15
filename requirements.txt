@@ -1,0 +1,5 @@
+python-telegram-bot==20.6
+pandas==2.0.3
+requests==2.31.0
+matplotlib==3.8.0
+mplcyberpunk==0.7.0
