@@ -32,7 +32,7 @@ developer_chat_id = config["developer_chat_id"]
 bot_token = config["bot_token"]
 exercises = config["exercises"]
 
-(START, KG, REPS, FERTIG) = range(4)
+(START, KG, REPS, FERTIG, CLEAR_ALL) = range(5)
 
 exercise_tmp = dict()
 kg_tmp = dict()
@@ -69,7 +69,9 @@ async def report(update: Update, context: CallbackContext) -> int:
         await context.bot.send_photo(chat_id, f"{hashed_id}_{e}.png")
 
     if len(exercises_list) == 0:
-        await context.bot.send_message(chat_id, "Nothing to report yet, you lazy laser!")
+        await context.bot.send_message(
+            chat_id, "Nothing to report yet, you lazy laser!"
+        )
 
     return START
 
@@ -205,6 +207,57 @@ async def error_handler(update: object, context: CallbackContext) -> None:
     await context.bot.send_message(chat_id=developer_chat_id, text=str(context.error))
 
 
+async def delete_last_entry(update: Update, context: CallbackContext) -> int:
+    chat_id = update.message.chat.id
+    user_id = update.message.from_user.id
+    hashed_id = hashlib.md5(bytes(user_id)).hexdigest()
+
+    with open(os.path.join(outdir, hashed_id) + ".csv", "r") as fp:
+        lines = fp.readlines()
+
+    with open(os.path.join(outdir, hashed_id) + ".csv", "w") as fp:
+        for number, line in enumerate(lines):
+            if number != len(lines) - 1:
+                fp.write(line)
+
+    await context.bot.send_message(chat_id, "Last entry deleted.")
+
+    return START
+
+
+async def clear_all(update: Update, context: CallbackContext) -> int:
+    keyboard = [InlineKeyboardButton(d, callback_data=d) for d in ["Yes", "No"]]
+
+    chunk_size = 2
+    chunks = [keyboard[x : x + chunk_size] for x in range(0, len(keyboard), chunk_size)]
+
+    reply_markup = InlineKeyboardMarkup(chunks)
+
+    await context.bot.send_message(
+        update.message.chat.id,
+        "You sure?! This will delete all entries!",
+        reply_markup=reply_markup,
+    )
+
+    return CLEAR_ALL
+
+
+async def clear_all_for_real(update: Update, context: CallbackContext) -> int:
+    query = update.callback_query
+    user_id = query.from_user.id
+    hashed_id = hashlib.md5(bytes(user_id)).hexdigest()
+
+    await query.answer()
+
+    if query.data == "Yes":
+        os.remove(os.path.join(outdir, f"{hashed_id}.csv"))
+        await query.edit_message_text(text=f"Removed all entries.")
+    else:
+        await query.edit_message_text(text=f"All right, nothing removed this time.")
+
+    return START
+
+
 def main() -> None:
     """Setup and run the bot."""
     # Create the Updater and pass it your bot's token.
@@ -215,16 +268,21 @@ def main() -> None:
             CommandHandler("start", start),
             CommandHandler("exercise", exercise),
             CommandHandler("report", report),
+            CommandHandler("delete_last_entry", delete_last_entry),
+            CommandHandler("clear_all", clear_all),
         ],
         states={
             START: [
                 CommandHandler("start", start),
                 CommandHandler("exercise", exercise),
                 CommandHandler("report", report),
+                CommandHandler("delete_last_entry", delete_last_entry),
+                CommandHandler("clear_all", clear_all),
             ],
             KG: [CallbackQueryHandler(kg)],
             REPS: [CallbackQueryHandler(reps)],
             FERTIG: [CallbackQueryHandler(fertig)],
+            CLEAR_ALL: [CallbackQueryHandler(clear_all_for_real)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
