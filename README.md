@@ -1,7 +1,9 @@
-# Probable Futures Telegram Bot
+# Gym Bot
 
-https://t.me/ProbableFuturesBot is a Telegram Bot that is connected to the [Probable Futures API](https://github.com/Probable-Futures/api-libraries/pull/1).
+https://t.me/gym_42_bot is a Telegram Bot that keeps track of your gym progress.
 
-Either share your location or send an address, choose a warming scenario (e.g. +2°), and a map (e.g. Nights above 25°C (77°F)) and the bot will send back the info from [Probable Futures](https://probablefutures.org/).
+Send it what exercise with how many kg and reps you did and it'll save it to its database.
 
-![trailer.gif](trailer.gif)
+It can then send you your exercise history with some cool statistics and graphs.
+
+And don't worry, your user id is anonymised so it won't know who you are.
