@@ -18,7 +18,7 @@ from telegram.ext import CallbackQueryHandler, ApplicationBuilder
 from gymbot.tools import read_config, read_csv, plot_exercises
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING
 )
 logger = logging.getLogger(__name__)
 
