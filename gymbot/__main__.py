@@ -68,6 +68,9 @@ async def report(update: Update, context: CallbackContext) -> int:
     for e in exercises_list:
         await context.bot.send_photo(chat_id, f"{hashed_id}_{e}.png")
 
+    if len(exercises_list) == 0:
+        await context.bot.send_message(chat_id, "Nothing to report yet, you lazy laser!")
+
     return START
 
 
