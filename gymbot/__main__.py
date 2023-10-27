@@ -102,9 +102,18 @@ async def kg(update: Update, context: CallbackContext) -> int:
 
     await query.edit_message_text(text=f"Selected exercise: {query.data}")
 
-    keyboard = [
-        InlineKeyboardButton(str(d), callback_data=str(d)) for d in range(20, 205, 5)
-    ]
+    if query.data in [
+        "Walking Lunges",
+        "Dumbbell Rows",
+        "Shoulder Press",
+        "Biceps Curl",
+        "Triceps Extension",
+    ]:
+        kg_range = range(5, 41, 1)
+    else:
+        kg_range = range(20, 205, 5)
+
+    keyboard = [InlineKeyboardButton(str(d), callback_data=str(d)) for d in kg_range]
 
     chunk_size = 5
     chunks = [keyboard[x : x + chunk_size] for x in range(0, len(keyboard), chunk_size)]

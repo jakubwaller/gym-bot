@@ -109,7 +109,7 @@ async def plot_exercises(all_exercises: DataFrame, hashed_id: str, chat_id: int,
         fig, ax = plt.subplots(figsize=(15, 15))
         ax.plot(resampled.timestamp, resampled.kg, drawstyle=drawstyle)
         ax.scatter(resampled.timestamp, resampled.kg)
-        ax.xaxis.set_major_locator(mdates.HourLocator(interval=1))
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d.%m. %H:%M"))
         plt.gcf().autofmt_xdate()
         plt.ylabel("kg")
