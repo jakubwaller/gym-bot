@@ -8,6 +8,7 @@ from telegram import (
     InlineKeyboardMarkup,
     Update,
 )
+from telegram.constants import ChatAction
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -57,6 +58,7 @@ async def start(update: Update, context: CallbackContext) -> int:
 async def report(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat.id
     user_id = update.message.from_user.id
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     logger.info(f"user_id: {user_id}")
     hashed_id = hashlib.md5(bytes(user_id)).hexdigest()
     logger.info(f"hashed: {hashed_id}")
@@ -75,6 +77,7 @@ async def report(update: Update, context: CallbackContext) -> int:
 
 async def exercise(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat.id
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
     keyboard = [InlineKeyboardButton(d, callback_data=d) for d in exercises]
 
@@ -93,14 +96,13 @@ async def exercise(update: Update, context: CallbackContext) -> int:
 async def kg(update: Update, context: CallbackContext) -> int:
     query = update.callback_query
     chat_id = query.message.chat.id
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     user_id = query.from_user.id
     logger.info(f"user_id: {user_id}")
 
     await query.answer()
 
     exercise_tmp[user_id] = query.data
-
-    await query.edit_message_text(text=f"Selected exercise: {query.data}")
 
     if query.data in [
         "Walking Lunges",
@@ -110,6 +112,14 @@ async def kg(update: Update, context: CallbackContext) -> int:
         "Triceps Extension",
     ]:
         kg_range = range(5, 41, 1)
+    elif query.data in [
+        "Pullup overhand",
+        "Pullup underhand",
+        "Pushup",
+        "The Countdown",
+    ]:
+        kg_tmp[user_id] = -1
+        return await reps(update, context)
     else:
         kg_range = range(20, 205, 5)
 
@@ -120,6 +130,8 @@ async def kg(update: Update, context: CallbackContext) -> int:
 
     reply_markup = InlineKeyboardMarkup(chunks)
 
+    await query.delete_message()
+
     await context.bot.send_message(chat_id, "How many kg?", reply_markup=reply_markup)
 
     return REPS
@@ -128,14 +140,13 @@ async def kg(update: Update, context: CallbackContext) -> int:
 async def reps(update: Update, context: CallbackContext) -> int:
     query = update.callback_query
     chat_id = query.message.chat.id
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     user_id = query.from_user.id
     logger.info(f"user_id: {user_id}")
 
     await query.answer()
 
     kg_tmp[user_id] = query.data
-
-    await query.edit_message_text(text=f"Selected kg: {query.data}")
 
     keyboard = [
         InlineKeyboardButton(str(d), callback_data=str(d)) for d in range(1, 51)
@@ -146,6 +157,8 @@ async def reps(update: Update, context: CallbackContext) -> int:
 
     reply_markup = InlineKeyboardMarkup(chunks)
 
+    await query.delete_message()
+
     await context.bot.send_message(chat_id, "How many reps?", reply_markup=reply_markup)
 
     return FERTIG
@@ -154,6 +167,7 @@ async def reps(update: Update, context: CallbackContext) -> int:
 async def fertig(update: Update, context: CallbackContext) -> int:
     query = update.callback_query
     chat_id = query.message.chat.id
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     user_id = query.from_user.id
     logger.info(f"user_id: {user_id}")
     logger.info(f"hashed: {hashlib.md5(bytes(user_id)).hexdigest()}")
@@ -171,8 +185,6 @@ async def fertig(update: Update, context: CallbackContext) -> int:
 
     reps_tmp[user_id] = query.data
 
-    await query.edit_message_text(text=f"Selected reps: {query.data}")
-
     data_row = ",".join(
         [
             str(is_group),
@@ -188,9 +200,22 @@ async def fertig(update: Update, context: CallbackContext) -> int:
     ) as file:
         file.write(data_row + "\n")
 
+    if kg_tmp[user_id] == -1:
+        exercise_line = ", ".join([exercise_tmp[user_id], reps_tmp[user_id] + " reps"])
+    else:
+        exercise_line = ", ".join(
+            [
+                exercise_tmp[user_id],
+                kg_tmp[user_id] + " kg",
+                reps_tmp[user_id] + " reps",
+            ]
+        )
+
+    await query.delete_message()
+
     await context.bot.send_message(
         chat_id,
-        f"Exercise saved: {', '.join([exercise_tmp[user_id], kg_tmp[user_id] + ' kg', reps_tmp[user_id] + ' reps'])}",
+        f"Exercise saved: {exercise_line}",
     )
 
     return START
@@ -215,6 +240,7 @@ async def error_handler(update: object, context: CallbackContext) -> None:
 
 async def delete_last_entry(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat.id
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     user_id = update.message.from_user.id
     hashed_id = hashlib.md5(bytes(user_id)).hexdigest()
 
@@ -251,6 +277,9 @@ async def clear_all(update: Update, context: CallbackContext) -> int:
 async def clear_all_for_real(update: Update, context: CallbackContext) -> int:
     query = update.callback_query
     user_id = query.from_user.id
+    await context.bot.send_chat_action(
+        chat_id=query.message.chat_id, action=ChatAction.TYPING
+    )
     hashed_id = hashlib.md5(bytes(user_id)).hexdigest()
 
     await query.answer()

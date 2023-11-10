@@ -101,25 +101,35 @@ def run_request(
     return json.loads(response.content.decode("UTF-8"))
 
 
-async def plot_exercises(all_exercises: DataFrame, hashed_id: str, chat_id: int, context: CallbackContext):
+async def plot_exercises(
+    all_exercises: DataFrame, hashed_id: str, chat_id: int, context: CallbackContext
+):
     for c in all_exercises["exercise"].unique():
+        if c in ["Pullup overhand", "Pullup underhand", "Pushup", "The Countdown"]:
+            plot_value = "reps"
+        else:
+            plot_value = "kg"
         resampled = all_exercises.drop("group", axis=1)
         resampled = resampled[resampled.exercise == c].drop("exercise", axis=1)
         drawstyle = "default"
         fig, ax = plt.subplots(figsize=(15, 15))
-        ax.plot(resampled.timestamp, resampled.kg, drawstyle=drawstyle)
-        ax.scatter(resampled.timestamp, resampled.kg)
+        ax.plot(resampled.timestamp, resampled[plot_value], drawstyle=drawstyle)
+        ax.scatter(resampled.timestamp, resampled[plot_value])
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d.%m. %H:%M"))
         plt.gcf().autofmt_xdate()
-        plt.ylabel("kg")
+        plt.ylabel(plot_value)
         plt.xlabel("Date")
         plt.title(c)
 
         for i, point in resampled.iterrows():
+            if plot_value == "kg":
+                annotation = f'{point["kg"]} kg ({point["reps"]} reps)'
+            else:
+                annotation = f'{point["reps"]} reps'
             ax.annotate(
-                f'{point["kg"]} kg ({point["reps"]} reps)',
-                (point["timestamp"], point["kg"]),
+                annotation,
+                (point["timestamp"], point[plot_value]),
                 xytext=(10, -5),
                 textcoords="offset points",
                 family="sans-serif",
