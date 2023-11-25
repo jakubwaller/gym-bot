@@ -104,6 +104,7 @@ def run_request(
 async def plot_exercises(
     all_exercises: DataFrame, hashed_id: str, chat_id: int, context: CallbackContext
 ):
+    plt.rcParams.update({"font.size": 22})
     for c in all_exercises["exercise"].unique():
         if c in ["Pullup overhand", "Pullup underhand", "Pushup", "The Countdown"]:
             plot_value = "reps"
@@ -131,9 +132,7 @@ async def plot_exercises(
                 annotation,
                 (point["timestamp"], point[plot_value]),
                 xytext=(10, -5),
-                textcoords="offset points",
-                family="sans-serif",
-                fontsize=18,
+                textcoords="offset points"
             )
 
         mplcyberpunk.add_glow_effects()
