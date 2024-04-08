@@ -106,7 +106,7 @@ async def plot_exercises(
 ):
     plt.rcParams.update({"font.size": 22})
     for c in all_exercises["exercise"].unique():
-        if c in ["Pullup overhand", "Pullup underhand", "Pushup", "The Countdown"]:
+        if c in ["Pullup overhand", "Pullup underhand", "Pushup", "The Countdown", "Hanging Leg Raise"]:
             plot_value = "reps"
         else:
             plot_value = "kg"
