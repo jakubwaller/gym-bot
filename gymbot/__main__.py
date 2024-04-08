@@ -117,6 +117,7 @@ async def kg(update: Update, context: CallbackContext) -> int:
         "Pullup underhand",
         "Pushup",
         "The Countdown",
+        "Hanging Leg Raise"
     ]:
         kg_tmp[user_id] = -1
         return await reps(update, context)
